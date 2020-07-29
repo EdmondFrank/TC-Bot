@@ -1,34 +1,7 @@
-"""
-Created on May 22, 2016
-
-This should be a simple minimalist run file. It's only responsibility should be to parse the arguments (which agent, user simulator to use) and launch a dialog simulation.
-
-Rule-agent: python run.py --agt 6 --usr 1 --max_turn 40 --episodes 150 --movie_kb_path .\deep_dialog\data\movie_kb.1k.p --run_mode 2
-
-movie_kb:
-movie_kb.1k.p: 94% success rate
-movie_kb.v2.p: 36% success rate
-
-user goal files:
-first turn: user_goals_first_turn_template.v2.p
-all turns: user_goals_all_turns_template.p
-user_goals_first_turn_template.part.movie.v1.p: a subset of user goal. [Please use this one, the upper bound success rate on movie_kb.1k.json is 0.9765.]
-
-Commands:
-Rule: python run.py --agt 5 --usr 1 --max_turn 40 --episodes 150 --movie_kb_path .\deep_dialog\data\movie_kb.1k.p --goal_file_path .\deep_dialog\data\user_goals_first_turn_template.part.movie.v1.p --intent_err_prob 0.00 --slot_err_prob 0.00 --episodes 500 --act_level 1 --run_mode 1
-
-Training:
-RL: python run.py --agt 9 --usr 1 --max_turn 40 --movie_kb_path .\deep_dialog\data\movie_kb.1k.p --dqn_hidden_size 80 --experience_replay_pool_size 1000 --episodes 500 --simulation_epoch_size 100 --write_model_dir .\deep_dialog\checkpoints\rl_agent\ --run_mode 3 --act_level 0 --slot_err_prob 0.05 --intent_err_prob 0.00 --batch_size 16 --goal_file_path .\deep_dialog\data\user_goals_first_turn_template.part.movie.v1.p --warm_start 1 --warm_start_epochs 120
-
-Predict:
-RL: python run.py --agt 9 --usr 1 --max_turn 40 --movie_kb_path .\deep_dialog\data\movie_kb.1k.p --dqn_hidden_size 80 --experience_replay_pool_size 1000 --episodes 300 --simulation_epoch_size 100 --write_model_dir .\deep_dialog\checkpoints\rl_agent\ --slot_err_prob 0.00 --intent_err_prob 0.00 --batch_size 16 --goal_file_path .\deep_dialog\data\user_goals_first_turn_template.part.movie.v1.p --episodes 200 --trained_model_path .\deep_dialog\checkpoints\rl_agent\agt_9_22_30_0.37000.p --run_mode 3
-
-@author: xiul, t-zalipt
-"""
-
+# -*- coding: utf-8 -*-
 
 import argparse, json, copy, os
-import cPickle as pickle
+import pickle
 
 from deep_dialog.dialog_system import DialogManager, text_to_dict
 from deep_dialog.agents import AgentCmd, InformAgent, RequestAllAgent, RandomAgent, EchoAgent, RequestBasicsAgent, AgentDQN
@@ -101,8 +74,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     params = vars(args)
 
-    print 'Dialog Parameters: '
-    print json.dumps(params, indent=2)
+    print ('Dialog Parameters: ')
+    print (json.dumps(params, indent=2))
 
 
 max_turn = params['max_turn']
@@ -115,7 +88,7 @@ dict_path = params['dict_path']
 goal_file_path = params['goal_file_path']
 
 # load the user goals from .p file
-all_goal_set = pickle.load(open(goal_file_path, 'rb'))
+all_goal_set = pickle.load(open(goal_file_path, 'rb'), encoding="latin1")
 
 # split goal set
 split_fold = params.get('split_fold', 5)
@@ -127,7 +100,7 @@ for u_goal_id, u_goal in enumerate(all_goal_set):
 # end split goal set
 
 movie_kb_path = params['movie_kb_path']
-movie_kb = pickle.load(open(movie_kb_path, 'rb'))
+movie_kb = pickle.load(open(movie_kb_path, 'rb'), encoding="latin1")
 
 act_set = text_to_dict(params['act_set'])
 slot_set = text_to_dict(params['slot_set'])
@@ -135,7 +108,7 @@ slot_set = text_to_dict(params['slot_set'])
 ################################################################################
 # a movie dictionary for user simulator - slot:possible values
 ################################################################################
-movie_dictionary = pickle.load(open(dict_path, 'rb'))
+movie_dictionary = pickle.load(open(dict_path, 'rb'), encoding="latin1")
 
 dialog_config.run_mode = params['run_mode']
 dialog_config.auto_suggest = params['auto_suggest']
@@ -269,10 +242,10 @@ def save_model(path, agt, success_rate, agent, best_epoch, cur_epoch):
     checkpoint['params'] = params
     try:
         pickle.dump(checkpoint, open(filepath, "wb"))
-        print 'saved model in %s' % (filepath, )
-    except Exception, e:
-        print 'Error: Writing model fails: %s' % (filepath, )
-        print e
+        print ('saved model in %s' % (filepath, ))
+    except Exception as e:
+        print ('Error: Writing model fails: %s' % (filepath, ))
+        print (e)
 
 """ save performance numbers """
 def save_performance_records(path, agt, records):
@@ -280,10 +253,10 @@ def save_performance_records(path, agt, records):
     filepath = os.path.join(path, filename)
     try:
         json.dump(records, open(filepath, "wb"))
-        print 'saved model in %s' % (filepath, )
-    except Exception, e:
-        print 'Error: Writing model fails: %s' % (filepath, )
-        print e
+        print ('saved model in %s' % (filepath, ))
+    except Exception as e:
+        print ('Error: Writing model fails: %s' % (filepath, ))
+        print (e)
 
 """ Run N simulation Dialogues """
 def simulation_epoch(simulation_epoch_size):
@@ -292,7 +265,7 @@ def simulation_epoch(simulation_epoch_size):
     cumulative_turns = 0
     
     res = {}
-    for episode in xrange(simulation_epoch_size):
+    for episode in range(simulation_epoch_size):
         dialog_manager.initialize_episode()
         episode_over = False
         while(not episode_over):
@@ -319,7 +292,7 @@ def warm_start_simulation():
     
     res = {}
     warm_start_run_epochs = 0
-    for episode in xrange(warm_start_epochs):
+    for episode in range(warm_start_epochs):
         dialog_manager.initialize_episode()
         episode_over = False
         while(not episode_over):
@@ -356,7 +329,7 @@ def run_episodes(count, status):
         warm_start_simulation()
         print ('warm_start finished, start RL training ...')
     
-    for episode in xrange(count):
+    for episode in range(count):
         print ("Episode: %s" % (episode))
         dialog_manager.initialize_episode()
         episode_over = False

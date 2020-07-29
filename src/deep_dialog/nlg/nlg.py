@@ -7,7 +7,7 @@ Created on Oct 17, 2016
 @author: xiul
 '''
 
-import cPickle as pickle
+import pickle
 import copy, argparse, json
 import numpy as np
 
@@ -55,7 +55,7 @@ class nlg:
         
         # remove I do not care slot in task(complete)
         if dia_act['diaact'] == 'inform' and 'taskcomplete' in dia_act['inform_slots'].keys() and dia_act['inform_slots']['taskcomplete'] != dialog_config.NO_VALUE_MATCH:
-            inform_slot_set = dia_act['inform_slots'].keys()
+            inform_slot_set = list(dia_act['inform_slots'].keys())
             for slot in inform_slot_set:
                 if dia_act['inform_slots'][slot] == dialog_config.I_DO_NOT_CARE: del dia_act['inform_slots'][slot]
         
@@ -135,8 +135,8 @@ class nlg:
     def load_nlg_model(self, model_path):
         """ load the trained NLG model """  
         
-        model_params = pickle.load(open(model_path, 'rb'))
-    
+        model_params = pickle.load(open(model_path, 'rb'), encoding="latin1")
+
         hidden_size = model_params['model']['Wd'].shape[0]
         output_size = model_params['model']['Wd'].shape[1]
     
@@ -160,9 +160,10 @@ class nlg:
     def diaact_to_nl_slot_filling(self, dia_act, template_sentence):
         """ Replace the slots with its values """
         
-        sentence = template_sentence
+        sentence = str(template_sentence)
         counter = 0
         for slot in dia_act['inform_slots'].keys():
+            slot = str(slot)
             slot_val = dia_act['inform_slots'][slot]
             if slot_val == dialog_config.NO_VALUE_MATCH:
                 sentence = slot + " is not available!"
